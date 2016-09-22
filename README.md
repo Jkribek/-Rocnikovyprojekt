@@ -20,4 +20,5 @@ Arduino je ale stále možné napájet externím napájením přes pin na desce.
 2.Nepájivou desku.
 Umožňují realizovat elektronická zapojení bez pájení a tím bez poškození součástek. Vodivá spojení jsou vytvářena pomocí kontaktů, které jsou vzájemně vhodně propojeny.
 ![alt tag](http://rc.305.cz/images/breadboard_conn_1660.jpg)
-, nepajivou desku , LCD Shield pro Arduino s označením „aitendo UL024TF“.
+3.LCD Shield pro Arduino s označením „aitendo UL024TF“.
+![alt tag](http://www.arduino8.cz/wp-content/uploads/importedmedia/blogmedia-img-0588-jpg.jpg)
