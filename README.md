@@ -12,6 +12,7 @@ Zabezpečení 2.
 Pokud dveřmi projde bez toho aniž by byli odemčeny bezpečnostnim kodem , spusti se alaram díky pohybovému senzoru ktery bude nastavený za dveřmi.
 
 Budu využívat:
+
 1. Arduino Nano .
 Arduino Nano je v podstatě zmenšené Arduino Duemilanove. Velký USB konektor nahradil miniaturní miniUSB konektor a z desky zcela zmizel 9V napájecí konektor.
 Arduino je ale stále možné napájet externím napájením přes pin na desce. Arduino Nano představuje ideální řešení, pokud nepotřebujete ovládat desítky periferií.
@@ -23,4 +24,5 @@ Umožňují realizovat elektronická zapojení bez pájení a tím bez poškozen
 
 
 3.LCD Shield pro Arduino s označením „aitendo UL024TF“.
+Jedná se o 2.4″ velký TFT displej s dotykovým panelem a integrovaným slotem pro microSD
 ![alt tag](http://www.arduino8.cz/wp-content/uploads/importedmedia/blogmedia-img-0588-jpg.jpg)
