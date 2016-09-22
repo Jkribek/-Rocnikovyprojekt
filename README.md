@@ -28,3 +28,10 @@ Jedná se o 2.4″ velký TFT displej s dotykovým panelem a integrovaným slote
 
 
 ![alt tag](http://www.arduino8.cz/wp-content/uploads/importedmedia/blogmedia-img-0588-jpg.jpg)
+
+
+
+
+4.Čidlo HC-SR501 , diky kterému budeme zaznamenavat pohyb při otevřeni dveři pokud nebyli odemčeny přes zadané heslo.
+
+![alt tag](http://www.santy.cz/data/product/51_251.jpg)
