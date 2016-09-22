@@ -11,5 +11,13 @@ Při přiblížení ke dveřím se budete muset přes bluetooth přihlásit k ar
 Zabezpečení 2.
 Pokud dveřmi projde bez toho aniž by byli odemčeny bezpečnostnim kodem , spusti se alaram díky pohybovému senzoru ktery bude nastavený za dveřmi.
 
-Budu využívat Arduino , nepajivou desku , LCD Shield pro Arduino s označením „aitendo UL024TF“.
+Budu využívat:
+1. Arduino Nano .
+Arduino Nano je v podstatě zmenšené Arduino Duemilanove. Velký USB konektor nahradil miniaturní miniUSB konektor a z desky zcela zmizel 9V napájecí konektor.
+Arduino je ale stále možné napájet externím napájením přes pin na desce. Arduino Nano představuje ideální řešení, pokud nepotřebujete ovládat desítky periferií.
 ![alt tag](http://www.jsgelectronics.com/media/catalog/product/cache/1/image/300x300/9df78eab33525d08d6e5fb8d27136e95/a/r/arduino_nano_03.png)
+
+2.Nepájivou desku.
+Umožňují realizovat elektronická zapojení bez pájení a tím bez poškození součástek. Vodivá spojení jsou vytvářena pomocí kontaktů, které jsou vzájemně vhodně propojeny.
+![alt tag](http://rc.305.cz/images/breadboard_conn_1660.jpg)
+, nepajivou desku , LCD Shield pro Arduino s označením „aitendo UL024TF“.
