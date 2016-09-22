@@ -25,4 +25,6 @@ Umožňují realizovat elektronická zapojení bez pájení a tím bez poškozen
 
 3.LCD Shield pro Arduino s označením „aitendo UL024TF“.
 Jedná se o 2.4″ velký TFT displej s dotykovým panelem a integrovaným slotem pro microSD
+
+
 ![alt tag](http://www.arduino8.cz/wp-content/uploads/importedmedia/blogmedia-img-0588-jpg.jpg)
