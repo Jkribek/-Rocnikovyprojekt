@@ -15,5 +15,5 @@ Koncový výtvor bude vypadat cca:
 
 
 Schéma:
-![alt tag](/home/student/Obrázky/image1-1.JPG)
-![alt tag](http://home/student/Obrázky/image1-1.JPG)
+
+![alt tag](https://ctrlv.cz/shots/2016/10/20/GLjV.png)
