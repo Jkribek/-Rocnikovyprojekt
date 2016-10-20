@@ -12,3 +12,7 @@ Koncový výtvor bude vypadat cca:
 
 
 ![alt tag](https://s-media-cache-ak0.pinimg.com/236x/60/e1/6e/60e16e659125a271446066ec9b5d0bc1.jpg)
+
+
+Schéma:
+![alt tag](/home/student/Obrázky/image1-1.JPG)
