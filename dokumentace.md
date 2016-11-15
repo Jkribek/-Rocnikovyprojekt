@@ -38,7 +38,10 @@ The infinity mirror actually contains two mirrors with different  transmissivity
 Note that this does not work because the window tint "only lets light through in one direction", which is a common misconception. In order for the illusion to work properly, the side of the front mirror the observer is on (the outside world) must be much darker than the side with the LEDs (inside the infinity mirror). This is the same effect that you see in crime dramas/movies where someone is held in an interrogation room that has a mirror on the wall, but there are people on the other side of that mirror observing as though it's just a window. That only works if the interrogation room is well-lit and the observation room is dark.
 
 __Nazorny obrazek__
+
+
 ![alt tag](https://cdn.instructables.com/FQ0/TOIZ/HKVLJXM2/FQ0TOIZHKVLJXM2.MEDIUM.jpg?width=614)
+
 ![alt tag](https://cdn.instructables.com/FR4/L0IN/HKVL7G8A/FR4L0INHKVL7G8A.MEDIUM.jpg?width=614)
 
 
