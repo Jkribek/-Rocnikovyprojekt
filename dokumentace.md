@@ -53,3 +53,4 @@ __SCHEMA zapojeni__
 
 __Schema pro prijimač__
 ![alt tag](https://cdn.sparkfun.com/assets/f/1/7/6/7/524b4959757b7f456d8b4568.png)
+
