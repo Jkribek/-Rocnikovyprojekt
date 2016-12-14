@@ -1,4 +1,3 @@
-k
 #include <IRremote.h>
 
 #define GREEN 10
@@ -46,8 +45,7 @@ int ktera;
 
 void loop() {
  if (irrecv.decode(&results)) {
-Serial.println(results.value, HEX);
-   
+Serial.println(results.value, HEX);   
 value = results.value;
  irrecv.resume(); // Receive the next value
 switch(value) {
@@ -56,13 +54,13 @@ case code1: sviti=0;
 break;
 
 
-case redak:  cervena=255; zelena=0; modra=0; red();ktera=0;
+case redak:  cervena=255; zelena=0; modra=0; vybarvy(); ktera=0;
 break;
 
-case grenak: cervena=0; zelena=255; modra=0; green(); ktera=1;
+case grenak: cervena=0; zelena=255; modra=0; vybarvy(); ktera=1;
 break;
 
-case modrak:  cervena=0; zelena=0; modra=255; blue();ktera=2;
+case modrak:  cervena=0; zelena=0; modra=255; vybarvy(); ktera=2;
 break;
 
 case nahoru: UpL();
@@ -80,13 +78,13 @@ if(sviti){
 
 void DownL(){
   switch(ktera){
-    case 0: if(cervena>79){cervena-=80; red();}
+    case 0: if(cervena>79){cervena-=80; vybarvy();}
     break;
 
-    case 1: if(zelena>79){zelena-=80; green();}
+    case 1: if(zelena>79){zelena-=80; vybarvy();}
     break;
 
-    case 2: if(modra>79){modra-=80; green();}
+    case 2: if(modra>79){modra-=80; vybarvy();}
     break;
     }
   
@@ -94,76 +92,21 @@ void DownL(){
 
 void UpL(){
   switch(ktera){
-    case 0: if(cervena<176){cervena+=80; red();}
+    case 0: if(cervena<176){cervena+=80; vybarvy();}
     break;
 
-    case 1: if(zelena<176){zelena+=80; green();}
+    case 1: if(zelena<176){zelena+=80; vybarvy();}
     break;
 
-    case 2: if(modra<176){modra+=80; green();}
+    case 2: if(modra<176){modra+=80; vybarvy();}
     break;
     
     }
   
   }
 
-void red(){
-      analogWrite( RED, cervena);
+void vybarvy(){
+    analogWrite( RED, cervena);
     analogWrite( GREEN, zelena);
-    analogWrite( BLUE, modra);  
-  }
-
-void green(){
-      analogWrite( RED, cervena);
-    analogWrite( GREEN, zelena);
-    analogWrite( BLUE, modra);  
-  }
-
-void blue(){
-      analogWrite( RED, cervena);
-    analogWrite( GREEN, zelena);
-    analogWrite( BLUE, modra);  
-  }
-
-
-void test(){
-  sviti=0;
-  }
-
-void svetlo(){
-  int redVal = 255;
-  int blueVal = 0;
-  int greenVal = 0;
-  for( int i = 0 ; i < 255 ; i += 1 ){
-    greenVal += 1;
-    redVal -= 1;
-    analogWrite( GREEN, 255 - greenVal );
-    analogWrite( RED, 255 - redVal );
-
-    delay( delayTime );
-  }
- 
-  redVal = 0;
-  blueVal = 0;
-  greenVal = 255;
-  for( int i = 0 ; i < 255 ; i += 1 ){
-    blueVal += 1;
-    greenVal -= 1;
-    analogWrite( BLUE, 255 - blueVal );
-    analogWrite( GREEN, 255 - greenVal );
-
-    delay( delayTime );
-  }
- 
-  redVal = 0;
-  blueVal = 255;
-  greenVal = 0;
-  for( int i = 0 ; i < 255 ; i += 1 ){
-    redVal += 1;
-    blueVal -= 1;
-    analogWrite( RED, 255 - redVal );
-    analogWrite( BLUE, 255 - blueVal );
-
-    delay( delayTime );
-  }
+    analogWrite( BLUE, modra);   
   }
