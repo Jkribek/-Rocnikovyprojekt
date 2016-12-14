@@ -1,24 +1,136 @@
+k
+#include <IRremote.h>
+
 #define GREEN 10
 #define BLUE 9
 #define RED 11
 #define delayTime 20
 
-void setup() {
+#define code1 0xF7C03F
+#define code2 0xF740BF 
+#define redak 0xF720DF
+#define grenak 0xF7A05F
+#define modrak 0xF7609F
+#define nahoru 0xF700FF
+#define dolu 0xF7807F
 
+unsigned int value;
+
+int RECV_PIN = 2;
+IRrecv irrecv(RECV_PIN);
+decode_results results;
+int sviti=0;
+void setup() {
+  
   pinMode(GREEN, OUTPUT);
   pinMode(BLUE, OUTPUT);
   pinMode(RED, OUTPUT);
   digitalWrite(GREEN, HIGH);
   digitalWrite(BLUE, HIGH);
   digitalWrite(RED, HIGH);
+  Serial.begin(9600);
+  Serial.println("start");
+  irrecv.enableIRIn(); // Start the receiver
+  attachInterrupt(2,test, CHANGE);
 }
 
 int redVal;
 int blueVal;
 int greenVal;
- 
+
+int cervena;
+int zelena;
+int modra;
+
+int ktera;
+
 void loop() {
- 
+ if (irrecv.decode(&results)) {
+Serial.println(results.value, HEX);
+   
+value = results.value;
+ irrecv.resume(); // Receive the next value
+switch(value) {
+
+case code1: sviti=0;
+break;
+
+
+case redak:  cervena=255; zelena=0; modra=0; red();ktera=0;
+break;
+
+case grenak: cervena=0; zelena=255; modra=0; green(); ktera=1;
+break;
+
+case modrak:  cervena=0; zelena=0; modra=255; blue();ktera=2;
+break;
+
+case nahoru: UpL();
+break;
+
+case dolu: DownL();
+break;
+
+}}
+
+if(sviti){
+  svetlo();
+  }
+}
+
+void DownL(){
+  switch(ktera){
+    case 0: if(cervena>79){cervena-=80; red();}
+    break;
+
+    case 1: if(zelena>79){zelena-=80; green();}
+    break;
+
+    case 2: if(modra>79){modra-=80; green();}
+    break;
+    }
+  
+  }
+
+void UpL(){
+  switch(ktera){
+    case 0: if(cervena<176){cervena+=80; red();}
+    break;
+
+    case 1: if(zelena<176){zelena+=80; green();}
+    break;
+
+    case 2: if(modra<176){modra+=80; green();}
+    break;
+    
+    }
+  
+  }
+
+void red(){
+      analogWrite( RED, cervena);
+    analogWrite( GREEN, zelena);
+    analogWrite( BLUE, modra);  
+  }
+
+void green(){
+      analogWrite( RED, cervena);
+    analogWrite( GREEN, zelena);
+    analogWrite( BLUE, modra);  
+  }
+
+void blue(){
+      analogWrite( RED, cervena);
+    analogWrite( GREEN, zelena);
+    analogWrite( BLUE, modra);  
+  }
+
+
+void test(){
+  sviti=0;
+  }
+
+void svetlo(){
   int redVal = 255;
   int blueVal = 0;
   int greenVal = 0;
@@ -54,4 +166,4 @@ void loop() {
 
     delay( delayTime );
   }
-}
+  }
