@@ -1,112 +1,359 @@
 #include <IRremote.h>
 
-#define GREEN 10
-#define BLUE 9
-#define RED 11
-#define delayTime 20
+//set pins
+#define REDPIN 6
+#define GREENPIN 10
+#define BLUEPIN 9
 
-#define code1 0xF7C03F
-#define code2 0xF740BF 
-#define redak 0xF720DF
-#define grenak 0xF7A05F
-#define modrak 0xF7609F
-#define nahoru 0xF700FF
-#define dolu 0xF7807F
+//Globální proměnné
+unsigned char Red = 0;
+unsigned char Green = 0;
+unsigned char Blue = 0;
 
-unsigned int value;
+//Globální proměnné funkcí
+unsigned char State = 0;
+unsigned char Flash = 0;
+unsigned char Fade = 0;
 
+unsigned long previousMillis = 0;        
+const long interval = 500;  
+int blik=0; 
+int strobe1=0;
+
+
+//Nastavovaní infračerveného přijímače
 int RECV_PIN = 2;
 IRrecv irrecv(RECV_PIN);
 decode_results results;
-int sviti=0;
-void setup() {
-  
-  pinMode(GREEN, OUTPUT);
-  pinMode(BLUE, OUTPUT);
-  pinMode(RED, OUTPUT);
-  digitalWrite(GREEN, HIGH);
-  digitalWrite(BLUE, HIGH);
-  digitalWrite(RED, HIGH);
+
+String inputString = "";         // Řetězec k udržení přicházejících dat
+boolean stringComplete = false;  
+
+void setup()
+{
   Serial.begin(9600);
-  Serial.println("start");
-  irrecv.enableIRIn(); // Start the receiver
-  attachInterrupt(2,test, CHANGE);
+  attachInterrupt(0,CHECK_IR,CHANGE);
+  irrecv.enableIRIn(); // Zapnutí přijímače
+  inputString.reserve(200);
+
+  //set pwm pins
+  pinMode(REDPIN, OUTPUT);
+  pinMode(GREENPIN, OUTPUT);
+  pinMode(BLUEPIN, OUTPUT);
+  
 }
-
-int redVal;
-int blueVal;
-int greenVal;
-
-int cervena;
-int zelena;
-int modra;
-
-int ktera;
 
 void loop() {
- if (irrecv.decode(&results)) {
-Serial.println(results.value, HEX);   
-value = results.value;
- irrecv.resume(); // Receive the next value
-switch(value) {
+ serialEvent(); //Zavolání funkce
+  // Vypsani stringu když je vypsan nový řádek
+  if (stringComplete) {
+    decode_Serial(inputString);
+    // Vyčištění řetězce
+    inputString = "";
+    stringComplete = false;
+    
+  }
 
-case code1: sviti=0;
-break;
+  //Flash
+  if(State == 1){
+    if(Flash < 255){
+      analogWrite(REDPIN, ++Flash);
+      analogWrite(GREENPIN, Flash);
+      analogWrite(BLUEPIN, Flash);
 
+      delay(10);
+    }else if(Flash == 255){
+      State = 2;
+    }
+  }else if(State == 2){
+    if(Flash >= 1){
+      analogWrite(REDPIN, --Flash);
+      analogWrite(GREENPIN, Flash);
+      analogWrite(BLUEPIN, Flash);
 
-case redak:  cervena=255; zelena=0; modra=0; vybarvy(); ktera=0;
-break;
+      delay(10);
+    }else if(Flash == 0){
+      State = 1;
+    }
+  //fade
+  }else if(State == 3){
+    //blue to violet
+    if(Fade == 0){
+      analogWrite(REDPIN,Red++);
+      if(Red == 255){
+        Fade = 1;
+      }
+    //violet to red
+    }else if(Fade == 1){
+      analogWrite(BLUEPIN,Blue--);
+      if(Blue == 0){
+        Fade = 2;
+      }
+    //red to yellow
+    }else if(Fade == 2){
+      analogWrite(GREENPIN,Green++);
+      if(Green == 255){
+        Fade = 3;
+      }
+    //yellow to green
+    }else if(Fade == 3){
+      analogWrite(REDPIN,Red--);
+      if(Red == 0){
+        Fade = 4;
+      }
+    //green to teal
+    }else if(Fade == 4){
+      analogWrite(BLUEPIN,Blue++);
+      if(Blue == 255){
+        Fade = 5;
+      }
+    //teal to blue
+    }else if(Fade == 5){
+      analogWrite(GREENPIN,Green--);
+      if(Green == 0){
+        Fade = 0;
+      }
+    }
 
-case grenak: cervena=0; zelena=255; modra=0; vybarvy(); ktera=1;
-break;
+    delay(10);
+  }
+  if(strobe1){
+    strobe();
+    }
+}
 
-case modrak:  cervena=0; zelena=0; modra=255; vybarvy(); ktera=2;
-break;
-
-case nahoru: UpL();
-break;
-
-case dolu: DownL();
-break;
-
-}}
-
-if(sviti){
-  svetlo();
+/**
+ * interrupt routine for the IR receiver
+ */
+void CHECK_IR(){
+  while(irrecv.decode(&results)){
+    State = 0;
+    //Serial.println(results.value, DEC);
+    decode_Remote(results.value);
+    irrecv.resume();
   }
 }
 
-void DownL(){
-  switch(ktera){
-    case 0: if(cervena>79){cervena-=80; vybarvy();}
-    break;
+/**
+ * interprets the input from the serial interface
+ */
+void decode_Serial(String cmd){
+  if(cmd.startsWith("color:(", 0)){
+    int start = cmd.indexOf("(")+1;
+    int end_r = cmd.indexOf(",");
+    int end_g = cmd.indexOf(",",end_r +1);
+    int end_b = cmd.indexOf(")");
 
-    case 1: if(zelena>79){zelena-=80; vybarvy();}
-    break;
+    int red = cmd.substring(start,end_r).toInt();
+    int green = cmd.substring(end_r+1,end_g).toInt();
+    int blue = cmd.substring(end_g+1,end_b).toInt();
 
-    case 2: if(modra>79){modra-=80; vybarvy();}
-    break;
+    setColor(red, green, blue);
+  }else if(cmd.startsWith("cmd:",0)){
+    int start = cmd.indexOf(":")+1;
+    int end = cmd.length()-1;
+
+    String command = cmd.substring(start, end);
+   
+    if(command == "POWER_ON"){
+      powerOn();
+    }else if(command == "POWER_OFF"){
+      powerOff();
+    }else if(command == "FADE"){
+      fade();
+    }else if(command == "FLASH"){
+      flash();
     }
-  
   }
+}
 
-void UpL(){
-  switch(ktera){
-    case 0: if(cervena<176){cervena+=80; vybarvy();}
-    break;
+/**
+ * Funkce Strobe
+ */
 
-    case 1: if(zelena<176){zelena+=80; vybarvy();}
-    break;
+ void strobe(){
+   unsigned long currentMillis = millis();
 
-    case 2: if(modra<176){modra+=80; vybarvy();}
-    break;
-    
+  if (currentMillis - previousMillis >= interval) {
+    previousMillis = currentMillis;
+    if(blik){
+      blik=0;
+    setColor(255,255,255);
     }
-  
+    else {
+      blik=1;
+      setColor(0,0,0);
+      }
+  }
+}
+
+/**
+ * interpretes the IR Remote codes to commands and colors
+ */
+void decode_Remote(unsigned long code){
+    Serial.println(code);
+   if(strobe1=1)strobe1=0;
+    switch (code){
+      case 16236607:     powerOn();             break;  //Zapnutí
+      case 16203967:     powerOff();            break;  //POWER OFF
+      case 16195807:     setColor(255,0,0);     break;  //Cervena 1
+      case 16191727:     setColor(255,10,0);    break;  //Cervena 2
+      case 16199887:     setColor(255,20,0);    break;  //Cervena 3
+      case 16189687:     setColor(255,30,0);    break;  //Cervena 4
+      case 16197847:     setColor(255,80,0);    break;  //Cervena 5
+      case 16228447:     setColor(0,255,0);     break;  //Zelena 1
+      case 16224367:     setColor(0,255,15);    break;  //Zelena 2
+      case 16232527:     setColor(0,255,240);   break;  //Zelena 3
+      case 16222327:     setColor(0,80,255);    break;  //Zelena 4
+      case 16230487:     setColor(0,50,255);    break;  //Zelena 5
+      case 16212127:     setColor(0,0,255);     break;  //Modrá 1
+      case 16208047:     setColor(64,0,255);    break;  //Modrá 2
+      case 16216207:     setColor(240,0,255);   break;  //Modrá 3
+      case 16206007:     setColor(255,0,191);   break;  //Modrá 4
+      case 16214167:     setColor(255,0,100);   break;  //Modrá 5
+      case 16244767:     setColor(255,255,255); break;  //Bílá
+      case 16220287:     decreaseBrightness();  break;  //Snížení odstínu
+      case 16187647:     increaseBrightness();  break;  //Zvýšení odstínu
+      case 16240687:     flash();               break;  //Flash
+      case 16238647:     fade();                break;  //Fade
+      
+      case 16248847:     strobe1=1;              break;  //Strobe
+    }
+}
+
+
+
+/**
+ * Snižování PWM vystupu o 25
+ */
+void setColor(unsigned char red, unsigned char green, unsigned char blue){
+  //set colors
+  analogWrite(REDPIN, red);
+  analogWrite(GREENPIN, green);
+  analogWrite(BLUEPIN, blue);
+  // Ukládání aktualních barev
+  Red = red;
+  Green = green;
+  Blue = blue;
+  State = 0;
+
+  printColor();
+}
+
+/**
+ * Snižování PWM vystupu o 25
+ */
+void decreaseBrightness(){
+  if(Red >= 25){
+    Red -= 25;  
+  }else{
+    Red = 0;
   }
 
-void vybarvy(){
-    analogWrite( RED, cervena);
-    analogWrite( GREEN, zelena);
-    analogWrite( BLUE, modra);   
+  if(Green >= 25){
+    Green -= 25;  
+  }else{
+    Green = 0;
   }
+
+  if(Blue >= 25){
+    Blue -= 25;  
+  }else{
+    Blue = 0;
+  }
+  
+  setColor(Red, Green, Blue);
+  printColor();
+}
+
+
+/**
+ * Zvyšování PWM vystupu o 25
+ */
+void increaseBrightness(){
+  if(Red <= 230){
+    Red += 25;  
+  }else{
+    Red = 255;
+  }
+
+  if(Green <= 230){
+    Green += 25;  
+  }else{
+    Green = 255;
+  }
+
+  if(Blue <= 230){
+    Blue += 25;  
+  }else{
+    Blue = 255;
+  }
+  
+  setColor(Red, Green, Blue);
+  //printColor();
+}
+
+/*
+ * Vypisováni barvy do seriového monitoru
+ */
+void printColor(){
+  Serial.print("color:(");
+  Serial.print(Red);
+  Serial.print(",");
+  Serial.print(Green);
+  Serial.print(",");
+  Serial.print(Blue);
+  Serial.println(");");
+}
+
+/**
+ * power on
+ */
+void powerOn(){
+  Serial.println("cmd:POWER_ON;");
+  setColor(255,255,255); 
+}
+
+/**
+ * power off
+ */
+void powerOff(){
+  Serial.println("cmd:POWER_OFF;");
+  setColor(0,0,0);  
+}
+
+/**
+ * flash
+ */
+void flash(){
+  Serial.println("cmd:FLASH;");
+  State = 1;
+}
+
+/**
+ * fade
+ */
+void fade(){
+  State = 3;
+  Fade = 0;
+  Blue = 255;
+  analogWrite(BLUEPIN, Blue);
+  Serial.println("cmd:FADE;");
+}
+
+/*
+ * checks if the serial read is complete
+ */
+void serialEvent() {
+  while (Serial.available()) {
+    // get the new byte:
+    char inChar = (char)Serial.read();
+    // add it to the inputString:
+    inputString += inChar;
+    // if the incoming character is a newline, set a flag
+    // so the main loop can do something about it:
+    if (inChar == '\n') {
+      stringComplete = true;
+    }
+  }
+}
