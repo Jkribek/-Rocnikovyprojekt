@@ -1,24 +1,38 @@
 #include <IRremote.h>
+#include <EEPROM.h>
+
 
 //set pins
 #define REDPIN 6
 #define GREENPIN 10
 #define BLUEPIN 9
 
+#define BpinOn 3
+#define BpinUp 4
+#define BpinDown 5
+
 //Globální proměnné
 unsigned char Red = 0;
 unsigned char Green = 0;
 unsigned char Blue = 0;
+
+//Globální proměné pro snížení/zvýšení jasu
+unsigned char Dred = 0;
+unsigned char Dgreen = 0;
+unsigned char Dblue = 0;
+
 
 //Globální proměnné funkcí
 unsigned char State = 0;
 unsigned char Flash = 0;
 unsigned char Fade = 0;
 
-unsigned long previousMillis = 0;        
-const long interval = 500;  
+unsigned long previousMillis = 0;     
+unsigned long previousM = 0;     
+const long interval = 80;  
 int blik=0; 
 int strobe1=0;
+int zapnuto=0;
 
 
 //Nastavovaní infračerveného přijímače
@@ -28,6 +42,8 @@ decode_results results;
 
 String inputString = "";         // Řetězec k udržení přicházejících dat
 boolean stringComplete = false;  
+int barvic[]={255,255,255};
+
 
 void setup()
 {
@@ -40,7 +56,10 @@ void setup()
   pinMode(REDPIN, OUTPUT);
   pinMode(GREENPIN, OUTPUT);
   pinMode(BLUEPIN, OUTPUT);
-  
+
+  pinMode(BpinOn, INPUT);
+  pinMode(BpinUp, INPUT);
+  pinMode(BpinDown, INPUT);
 }
 
 void loop() {
@@ -54,7 +73,13 @@ void loop() {
     
   }
 
-  //Flash
+ButOn();
+ButUp();
+ButDown();
+
+  
+
+  //funkce Flash
   if(State == 1){
     if(Flash < 255){
       analogWrite(REDPIN, ++Flash);
@@ -75,7 +100,7 @@ void loop() {
     }else if(Flash == 0){
       State = 1;
     }
-  //fade
+  //funkce Fade
   }else if(State == 3){
     //blue to violet
     if(Fade == 0){
@@ -120,10 +145,129 @@ void loop() {
   if(strobe1){
     strobe();
     }
+    //svetlo();
 }
 
+ //Flash funkce 2 typu
+  void flasha(int color[3]){
+
+  int R=color[0];
+  int G=color[1];
+  int B=color[2];
+  int Ra=0;
+  int Ga=0;
+  int Ba=0;
+
+  analogWrite(REDPIN,R);
+  analogWrite(GREENPIN,G);
+  analogWrite(BLUEPIN,B);
+  delay(100);
+  analogWrite(REDPIN,Ra);
+  analogWrite(GREENPIN,Ga);
+  analogWrite(BLUEPIN,Ba);
+  delay(100);
+ 
+}
+
+// Tlačitko na zapnuti a vypnutí
+void ButOn(){
+    if(digitalRead(BpinOn)){
+      Serial.print("Zap/Vyp");
+      if(!zapnuto){
+          powerOn();
+          }
+      else{ 
+        powerOff(); 
+        } 
+           delay(300);
+    }
+  }
+
+
+//Tlačítko pro spuštění funkce FADE
+void ButUp(){
+  if(digitalRead(BpinUp)){
+    Serial.println("up");
+    //increaseBrightness();
+   fade;
+           delay(300);
+    }
+  }
+
+//Tlačítko pro spuštění funkce strobe
+void ButDown(){
+  if(digitalRead(BpinDown)){
+    Serial.println("down");
+   // decreaseBrightness();
+   if(!strobe1)
+     strobe1=1; 
+   else
+      strobe1=0;
+           delay(300);
+    }
+  }
+
+
+
+  void svetlo(){
+int pom=0;
+  int redVal = 255;
+  int blueVal = 0;
+  int greenVal = 0;
+  for( int i = 0 ; i < 255 ; i += 0 ){
+    unsigned long currentMillis = millis();
+if(pom){
+  i++;
+    greenVal += 1;
+    redVal -= 1;
+    analogWrite( GREENPIN, 255 - greenVal );
+    analogWrite( REDPIN, 255 - redVal );
+}
+     if (currentMillis - previousM >= 1000) {
+    previousM = currentMillis;
+    pom=0;
+   }else pom=1;
+  }
+ 
+  redVal = 0;
+  blueVal = 0;
+  greenVal = 255;
+  for( int i = 0 ; i < 255 ; i += 0 ){
+    unsigned long currentMillis = millis();
+   if(pom){
+    i++;
+    blueVal += 1;
+    greenVal -= 1;
+    analogWrite( BLUEPIN, 255 - blueVal );
+    analogWrite( GREENPIN, 255 - greenVal );}
+    if (currentMillis - previousM >= 1000) {
+    previousM = currentMillis;
+    pom=0;
+   }else pom=1;
+  }
+ 
+  redVal = 0;
+  blueVal = 255;
+  greenVal = 0;
+  for( int i = 0 ; i < 255 ; i += 0 ){
+    unsigned long currentMillis = millis();
+if(pom){
+  i++;
+    redVal += 1;
+    blueVal -= 1;
+    analogWrite( REDPIN, 255 - redVal );
+    analogWrite( BLUEPIN, 255 - blueVal );
+}
+     if (currentMillis - previousM >= 1000) {
+    previousM = currentMillis;
+    pom=0;
+   }else pom=1;
+  }
+  }
+
+
 /**
- * interrupt routine for the IR receiver
+ * Přerušení IR přijimače
  */
 void CHECK_IR(){
   while(irrecv.decode(&results)){
@@ -135,7 +279,7 @@ void CHECK_IR(){
 }
 
 /**
- * interprets the input from the serial interface
+ *  Interpretovani výstupu z seriového monitoru
  */
 void decode_Serial(String cmd){
   if(cmd.startsWith("color:(", 0)){
@@ -172,10 +316,10 @@ void decode_Serial(String cmd){
  */
 
  void strobe(){
-   unsigned long currentMillis = millis();
+   unsigned long currentMilli= millis();
 
-  if (currentMillis - previousMillis >= interval) {
-    previousMillis = currentMillis;
+  if (currentMilli - previousMillis >= interval) {
+    previousMillis = currentMilli;
     if(blik){
       blik=0;
     setColor(255,255,255);
@@ -188,7 +332,7 @@ void decode_Serial(String cmd){
 }
 
 /**
- * interpretes the IR Remote codes to commands and colors
+ * Nastavení barev a funkcí pro dané adresy
  */
 void decode_Remote(unsigned long code){
     Serial.println(code);
@@ -196,28 +340,27 @@ void decode_Remote(unsigned long code){
     switch (code){
       case 16236607:     powerOn();             break;  //Zapnutí
       case 16203967:     powerOff();            break;  //POWER OFF
-      case 16195807:     setColor(255,0,0);     break;  //Cervena 1
-      case 16191727:     setColor(255,10,0);    break;  //Cervena 2
-      case 16199887:     setColor(255,20,0);    break;  //Cervena 3
-      case 16189687:     setColor(255,30,0);    break;  //Cervena 4
-      case 16197847:     setColor(255,80,0);    break;  //Cervena 5
-      case 16228447:     setColor(0,255,0);     break;  //Zelena 1
-      case 16224367:     setColor(0,255,15);    break;  //Zelena 2
-      case 16232527:     setColor(0,255,240);   break;  //Zelena 3
-      case 16222327:     setColor(0,80,255);    break;  //Zelena 4
-      case 16230487:     setColor(0,50,255);    break;  //Zelena 5
-      case 16212127:     setColor(0,0,255);     break;  //Modrá 1
-      case 16208047:     setColor(64,0,255);    break;  //Modrá 2
-      case 16216207:     setColor(240,0,255);   break;  //Modrá 3
-      case 16206007:     setColor(255,0,191);   break;  //Modrá 4
-      case 16214167:     setColor(255,0,100);   break;  //Modrá 5
-      case 16244767:     setColor(255,255,255); break;  //Bílá
-      case 16220287:     decreaseBrightness();  break;  //Snížení odstínu
-      case 16187647:     increaseBrightness();  break;  //Zvýšení odstínu
-      case 16240687:     flash();               break;  //Flash
-      case 16238647:     fade();                break;  //Fade
-      
-      case 16248847:     strobe1=1;              break;  //Strobe
+      case 16195807:     setColor(255,0,0);     desetina();   break;  //Cervena 1
+      case 16191727:     setColor(255,10,0);    desetina();   break;  //Cervena 2
+      case 16199887:     setColor(255,20,0);    desetina();   break;  //Cervena 3
+      case 16189687:     setColor(255,30,0);    desetina();   break;  //Cervena 4
+      case 16197847:     setColor(255,80,0);    desetina();   break;  //Cervena 5
+      case 16228447:     setColor(0,255,0);     desetina();   break;  //Zelena 1
+      case 16224367:     setColor(0,255,15);    desetina();   break;  //Zelena 2
+      case 16232527:     setColor(0,255,240);   desetina();   break;  //Zelena 3
+      case 16222327:     setColor(0,80,255);    desetina();   break;  //Zelena 4
+      case 16230487:     setColor(0,50,255);    desetina();   break;  //Zelena 5
+      case 16212127:     setColor(0,0,255);     desetina();   break;  //Modrá 1
+      case 16208047:     setColor(64,0,255);    desetina();   break;  //Modrá 2
+      case 16216207:     setColor(240,0,255);   desetina();   break;  //Modrá 3
+      case 16206007:     setColor(255,0,191);   desetina();   break;  //Modrá 4
+      case 16214167:     setColor(255,0,100);   desetina();   break;  //Modrá 5
+      case 16244767:     setColor(255,255,255); desetina();   break;  //Bílá
+      case 16220287:     decreaseBrightness();  							break;  //Snížení odstínu
+      case 16187647:     increaseBrightness(); 								break;  //Zvýšení odstínu
+      case 16240687:     flash();               							break;  //Flash
+      case 16238647:     fade();               							  break;  //Fade
+      case 16248847:     strobe1=1;              							break;  //Strobe
     }
 }
 
@@ -236,34 +379,33 @@ void setColor(unsigned char red, unsigned char green, unsigned char blue){
   Green = green;
   Blue = blue;
   State = 0;
-
-  printColor();
+  
 }
 
 /**
  * Snižování PWM vystupu o 25
  */
 void decreaseBrightness(){
-  if(Red >= 25){
-    Red -= 25;  
+  if(Red >= Dred){
+    Red -= Dred;  
   }else{
     Red = 0;
   }
 
-  if(Green >= 25){
-    Green -= 25;  
+  if(Green >= Dgreen){
+    Green -= Dgreen;  
   }else{
     Green = 0;
   }
 
-  if(Blue >= 25){
-    Blue -= 25;  
+  if(Blue >= Dblue){
+    Blue -= Dblue;  
   }else{
     Blue = 0;
   }
   
   setColor(Red, Green, Blue);
-  printColor();
+
 }
 
 
@@ -272,58 +414,73 @@ void decreaseBrightness(){
  */
 void increaseBrightness(){
   if(Red <= 230){
-    Red += 25;  
+    Red += Dred;  
   }else{
     Red = 255;
   }
 
   if(Green <= 230){
-    Green += 25;  
+    Green += Dgreen;  
   }else{
     Green = 255;
   }
 
   if(Blue <= 230){
-    Blue += 25;  
+    Blue += Dblue;  
   }else{
     Blue = 255;
   }
   
   setColor(Red, Green, Blue);
-  //printColor();
 }
 
-/*
- * Vypisováni barvy do seriového monitoru
- */
-void printColor(){
-  Serial.print("color:(");
-  Serial.print(Red);
-  Serial.print(",");
-  Serial.print(Green);
-  Serial.print(",");
-  Serial.print(Blue);
-  Serial.println(");");
-}
+void desetina(){
+  Dred=Red/5;
+  Dgreen=Green/5;
+  Dblue=Blue/5;
+  }
+
+
 
 /**
- * power on
+ * ZAPNUTÍ
  */
 void powerOn(){
   Serial.println("cmd:POWER_ON;");
-  setColor(255,255,255); 
+  zapnuto=1;
+  nacti();
+  setColor(Red,Green,Blue); 
 }
 
 /**
- * power off
+ * VYPNUTÍ
  */
 void powerOff(){
   Serial.println("cmd:POWER_OFF;");
+  zapnuto=0;
+  uloz();
   setColor(0,0,0);  
 }
 
+
+//Ulození R G B barev do EEPROM paměti
+void uloz(){
+  EEPROM.write(1,Red);
+  EEPROM.write(2,Green);
+  EEPROM.write(3,Blue);  
+  }
+
+
+//Načtení barev z EEPROM paměti při spuštění
+void nacti(){
+  Red=EEPROM.read(1);
+  Green=EEPROM.read(2);
+  Blue=EEPROM.read(3);
+  }
+
+
 /**
- * flash
+ * Funkce flash
  */
 void flash(){
   Serial.println("cmd:FLASH;");
@@ -342,7 +499,7 @@ void fade(){
 }
 
 /*
- * checks if the serial read is complete
+ * Kontrola jestli je připravena seriová čtečka
  */
 void serialEvent() {
   while (Serial.available()) {
